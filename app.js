@@ -2,7 +2,7 @@ const prevBtn = document.getElementById("prev-btn");
 const nextBtn = document.getElementById("next-btn");
 const img = document.getElementById("person-img")
 const charName = document.getElementById("name");
-const info = document.getElementById("info");
+const description = document.getElementById("description");
 
 prevBtn.addEventListener('click', function () {
   fetchCharacter();
@@ -14,37 +14,53 @@ nextBtn.addEventListener('click', function () {
 
 async function fetchCharacter() {
   const response = await fetch("http://gateway.marvel.com/v1/public/characters?apikey=13044cb64bc8e85926262acc0c9e1320&ts=&hash=288e1712eea1b38c41cddc3594759d07", {
-        headers: {
-            Accept: "application/json",
-        },
-    });
+    headers: {
+      Accept: "application/json",
+    },
+  });
   const toArray = (await response.json());
-  var characterArray = [];
-  var characterImgArray = [];
-  var characterInfoArray = [];
+  let characterObject = [{
+    name: {},
+    img: {},
+    description: {}
+  }];
+
+  characterObjectArray = [];
+
   for (let i = 0; i < 20; i++) {
-    characterInfoArray.push(toArray.data.results[i].description);
-    characterArray.push(toArray.data.results[i].name);
-    characterImgArray.push(toArray.data.results[i].thumbnail.path + '/landscape_medium.jpg')
+    characterObject['description'] = toArray.data.results[i].description;
+    characterObject['name'] = toArray.data.results[i].name;
+    let imgPath = toArray.data.results[i].thumbnail.path;
+
+    if (imgPath.includes('image_not_available')) {
+      characterObject['img'] = 'dummy.png';
+    }
+    else {
+      characterObject['img'] = toArray.data.results[i].thumbnail.path + '/landscape_medium.jpg';
+    }
+    
+    characterObjectArray.push(characterObject);
+    
+    console.log('Character added' + characterObject['name'] + "" +
+      characterObject['description'] + "" + characterObject['img']);
   }
 
-  //test for null img & description
-  for (const x of characterImgArray) {
-    characterImgArray.pop(characterImgArray.filter(path => path.indexOf(path.includes('image_not_available'))));
-  }
-  let characterImg = await characterImgArray[Math.floor(Math.random() * await characterImgArray.length)];
-  let character = await characterArray[Math.floor(Math.random() * await characterArray.length)];
-  let characterInfo = await characterInfoArray[Math.floor(Math.random() * await characterInfoArray.length)];
-  console.log(characterInfoArray.length)
-  charName.textContent = await character;
-  img.src = await characterImg;
-  info.textContent = await characterInfo;
+  setCharacter();
 }
 
-async function convertToCharacters(jsonResponse) {
-  const charArray = Object.values(jsonResponse);
-  return charArray;
+async function setCharacter() {
+  let size = characterObjectArray.length;
+  let num = Math.floor(Math.random() * await size);
+
+  charName.textContent = await characterObjectArray[num].name;
+  img.src = await characterObjectArray[num].img;
+  description.textContent = await characterObjectArray[num].description
 }
+
+
+
+
+
 
 async function getRandomNumber(size) {
   return Math.floor(Math.random() * size);
